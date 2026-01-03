@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Fake Video & Voice Checker</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <main class="container">
+    <h1>Check if a video or voice is fake</h1>
+
+    <p class="subtitle">
+      Scammers now use AI to copy faces and voices.<br />
+      Upload what you received and check if it is real.
+    </p>
+
+    <div class="button-group">
+      <button onclick="goToUpload('image')" class="secondary-btn">
+      Check a Photo
+      </button>
+
+      <button onclick="goToUpload('video')" class="primary-btn">
+      Check a Video
+      </button>
+    
+      <button onclick="goToUpload('audio')" class="secondary-btn">
+      Check an Audio
+      </button>
+    </div>
+    
+
+    <p class="trust-text">
+      This tool helps you identify possible AI scams.<br />
+      Files are not stored permanently.
+    </p>
+  </main>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
