@@ -116,69 +116,76 @@
 
   <script>
     const data = sessionStorage.getItem("analysisResult");
-
+  
     const resultCard = document.getElementById("resultCard");
     const resultText = document.getElementById("resultText");
     const explanation = document.getElementById("explanation");
     const confidenceFill = document.getElementById("confidenceFill");
-
+  
     let speechText = "";
-
+    let currentUtterance = null;
+  
     if (!data) {
       resultText.innerText = "No result found";
-      explanation.innerText =
-        "Please upload a file and try again.";
+      explanation.innerText = "Please upload a file and try again.";
+      speechText =
+        "No result found. Please upload a file and try again.";
     } else {
       const result = JSON.parse(data);
-
-      /*
-        Expected backend format (example):
-
-        {
-          "label": "fake" | "real",
-          "confidence": 0.82,
-          "explanation": "Plain English explanation"
-        }
-      */
-
+  
       const label = result.label;
-      const confidence = result.confidence || 0.5;
+      const confidence = result.confidence ?? 0.5;
       const explanationText =
-        result.explanation ||
+        result.explanation ??
         "No additional explanation provided.";
-
+  
       confidenceFill.style.width =
         Math.round(confidence * 100) + "%";
-
+  
       if (label === "fake") {
         resultCard.className = "result-card fake";
-        resultText.innerText = "❌ This looks FAKE";
-        explanation.innerText = explanationText;
+        resultText.innerText = "This looks FAKE";
       } else if (label === "real") {
         resultCard.className = "result-card real";
-        resultText.innerText = "✅ This looks REAL";
-        explanation.innerText = explanationText;
+        resultText.innerText = "This looks REAL";
       } else {
         resultCard.className = "result-card unknown";
-        resultText.innerText = "⚠️ Could not decide";
-        explanation.innerText =
-          "The system could not confidently analyze this file.";
+        resultText.innerText = "Could not decide";
       }
-
+  
+      explanation.innerText = explanationText;
+  
       speechText =
-        resultText.innerText + ". " + explanation.innerText;
+        resultText.innerText +
+        ". Confidence level " +
+        Math.round(confidence * 100) +
+        " percent. " +
+        explanationText;
     }
-
+  
     function readResult() {
       if (!speechText) return;
-      const msg = new SpeechSynthesisUtterance(speechText);
-      speechSynthesis.speak(msg);
+  
+      // Stop any ongoing speech
+      window.speechSynthesis.cancel();
+  
+      currentUtterance = new SpeechSynthesisUtterance(speechText);
+  
+      // Elderly-friendly settings
+      currentUtterance.rate = 0.85;   // slower
+      currentUtterance.pitch = 1.0;
+      currentUtterance.volume = 1.0;
+      currentUtterance.lang = "en-US";
+  
+      window.speechSynthesis.speak(currentUtterance);
     }
-
+  
     function goHome() {
+      window.speechSynthesis.cancel();
       window.location.href = "index.html";
     }
   </script>
+  
 
 </body>
 </html>
