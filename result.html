@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Result</title>
+  <link rel="stylesheet" href="css/style.css" />
+
+  <style>
+    .result-card {
+      padding: 40px;
+      border-radius: 14px;
+      margin-bottom: 30px;
+    }
+
+    .real {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .fake {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .unknown {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .result-text {
+      font-size: 2.2rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .confidence-bar {
+      height: 18px;
+      background-color: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 15px 0;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      width: 0%;
+      background-color: #333;
+    }
+
+    .explanation {
+      font-size: 1.2rem;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    .actions {
+      text-align: left;
+      font-size: 1.1rem;
+    }
+
+    .actions ul {
+      padding-left: 20px;
+    }
+
+    .speak-btn {
+      font-size: 1rem;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    .back-btn {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <main class="container">
+    <h1>Result</h1>
+
+    <button class="speak-btn" onclick="readResult()">
+      🔊 Read result aloud
+    </button>
+
+    <div id="resultCard" class="result-card unknown">
+      <div id="resultText" class="result-text">
+        Result unavailable
+      </div>
+
+      <div class="confidence-bar">
+        <div id="confidenceFill" class="confidence-fill"></div>
+      </div>
+
+      <p id="explanation" class="explanation">
+        We could not determine the result.
+      </p>
+    </div>
+
+    <div class="actions">
+      <h3>What you should do</h3>
+      <ul>
+        <li>Do not send money or OTPs.</li>
+        <li>Do not click unknown links.</li>
+        <li>Talk to a trusted family member.</li>
+      </ul>
+    </div>
+
+    <button class="primary-btn back-btn" onclick="goHome()">
+      Check another file
+    </button>
+  </main>
+
+  <script>
+    const data = sessionStorage.getItem("analysisResult");
+
+    const resultCard = document.getElementById("resultCard");
+    const resultText = document.getElementById("resultText");
+    const explanation = document.getElementById("explanation");
+    const confidenceFill = document.getElementById("confidenceFill");
+
+    let speechText = "";
+
+    if (!data) {
+      resultText.innerText = "No result found";
+      explanation.innerText =
+        "Please upload a file and try again.";
+    } else {
+      const result = JSON.parse(data);
+
+      /*
+        Expected backend format (example):
+
+        {
+          "label": "fake" | "real",
+          "confidence": 0.82,
+          "explanation": "Plain English explanation"
+        }
+      */
+
+      const label = result.label;
+      const confidence = result.confidence || 0.5;
+      const explanationText =
+        result.explanation ||
+        "No additional explanation provided.";
+
+      confidenceFill.style.width =
+        Math.round(confidence * 100) + "%";
+
+      if (label === "fake") {
+        resultCard.className = "result-card fake";
+        resultText.innerText = "❌ This looks FAKE";
+        explanation.innerText = explanationText;
+      } else if (label === "real") {
+        resultCard.className = "result-card real";
+        resultText.innerText = "✅ This looks REAL";
+        explanation.innerText = explanationText;
+      } else {
+        resultCard.className = "result-card unknown";
+        resultText.innerText = "⚠️ Could not decide";
+        explanation.innerText =
+          "The system could not confidently analyze this file.";
+      }
+
+      speechText =
+        resultText.innerText + ". " + explanation.innerText;
+    }
+
+    function readResult() {
+      if (!speechText) return;
+      const msg = new SpeechSynthesisUtterance(speechText);
+      speechSynthesis.speak(msg);
+    }
+
+    function goHome() {
+      window.location.href = "index.html";
+    }
+  </script>
+
+</body>
+</html>
