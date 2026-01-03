@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload File</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Page-specific styles */
+    .upload-box {
+      border: 3px dashed #999;
+      padding: 40px;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    .upload-box:hover {
+      background-color: #f8f8f8;
+    }
+
+    .upload-text {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+
+    .file-info {
+      font-size: 1rem;
+      color: #444;
+      margin-bottom: 20px;
+    }
+
+    .hidden-input {
+      display: none;
+    }
+
+    .loading {
+      margin-top: 20px;
+      font-size: 1.2rem;
+      display: none;
+    }
+
+    .disabled {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <main class="container">
+    <h1 id="pageTitle">Upload File</h1>
+
+    <p class="subtitle" id="pageSubtitle">
+      Upload the file you received.
+    </p>
+
+    <div class="upload-box" onclick="openFilePicker()">
+      <p class="upload-text">
+        Drop file here<br />or<br /><strong>Browse from device</strong>
+      </p>
+    </div>
+    <div id="previewContainer" style="display:none; margin-bottom:20px;">
+      <h3>Preview</h3>
+    
+      <img
+        id="imagePreview"
+        style="max-width:100%; display:none; border-radius:10px;"
+      />
+    
+      <video
+        id="videoPreview"
+        controls
+        style="max-width:100%; display:none; border-radius:10px;"
+      ></video>
+    
+      <audio
+        id="audioPreview"
+        controls
+        style="width:100%; display:none;"
+      ></audio>
+    </div>
+    
+
+    <input
+      type="file"
+      id="fileInput"
+      class="hidden-input"
+      accept=""
+      onchange="handleFileSelect(this.files[0])"
+    />
+
+    <p class="file-info" id="fileInfo">
+      Supported formats and size will appear here.
+    </p>
+
+    <button id="checkBtn" class="primary-btn disabled" onclick="submitFile()">
+      Check if this is fake
+    </button>
+
+    <p class="trust-text">
+      Your file is deleted after analysis.
+    </p>
+
+    <p class="loading" id="loadingText">
+      Checking... This may take a few seconds.
+    </p>
+  </main>
+
+  <script>
+    let selectedFile = null;
+    let fileType = "video";
+  
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("type")) {
+      fileType = params.get("type");
+    }
+  
+    const pageTitle = document.getElementById("pageTitle");
+    const pageSubtitle = document.getElementById("pageSubtitle");
+    const fileInfo = document.getElementById("fileInfo");
+    const fileInput = document.getElementById("fileInput");
+    const checkBtn = document.getElementById("checkBtn");
+    const loadingText = document.getElementById("loadingText");
+  
+    let allowedTypes = [];
+    let maxSizeMB = 0;
+  
+    if (fileType === "audio") {
+      pageTitle.innerText = "Upload the audio you received";
+      pageSubtitle.innerText =
+        "This could be a phone call recording or voice message.";
+  
+      allowedTypes = ["audio/mpeg", "audio/wav"];
+      maxSizeMB = 20;
+  
+      fileInput.accept = ".mp3,.wav";
+      fileInfo.innerText =
+        "Supported formats: MP3, WAV | Max size: 20 MB";
+  
+    } else if (fileType === "image") {
+      pageTitle.innerText = "Upload the photo you received";
+      pageSubtitle.innerText =
+        "This could be a photo shared through WhatsApp or social media.";
+  
+      allowedTypes = ["image/jpeg", "image/png"];
+      maxSizeMB = 3;
+  
+      fileInput.accept = ".jpg,.jpeg,.png";
+      fileInfo.innerText =
+        "Supported formats: JPG, PNG | Max size: 3 MB";
+  
+    } else {
+      pageTitle.innerText = "Upload the video you received";
+      pageSubtitle.innerText =
+        "This could be a video sent through WhatsApp or email.";
+  
+      allowedTypes = ["video/mp4", "video/quicktime"];
+      maxSizeMB = 5;
+  
+      fileInput.accept = ".mp4,.mov";
+      fileInfo.innerText =
+        "Supported formats: MP4, MOV | Max size: 5 MB";
+    }
+  
+    function openFilePicker() {
+      fileInput.click();
+    }
+  
+    function handleFileSelect(file) {
+  resetState();
+  hideAllPreviews();
+
+  if (!file) return;
+
+  // Validate type
+  if (!allowedTypes.includes(file.type)) {
+    fileInfo.innerText =
+      "Invalid file type. Please upload a supported format.";
+    fileInfo.style.color = "red";
+    return;
+  }
+
+  // Validate size
+  const fileSizeMB = file.size / (1024 * 1024);
+  if (fileSizeMB > maxSizeMB) {
+    fileInfo.innerText =
+      `File too large. Maximum allowed size is ${maxSizeMB} MB.`;
+    fileInfo.style.color = "red";
+    return;
+  }
+
+  // Valid file
+  selectedFile = file;
+  fileInfo.innerText = `Selected file: ${file.name}`;
+  fileInfo.style.color = "#444";
+  checkBtn.classList.remove("disabled");
+
+  showPreview(file);
+}
+
+  
+    function submitFile() {
+      if (!selectedFile) return;
+  
+      checkBtn.classList.add("disabled");
+      loadingText.style.display = "block";
+  
+      // Replace with real backend call
+      setTimeout(() => {
+        window.location.href = "result.html";
+      }, 2000);
+    }
+  
+    function resetState() {
+  selectedFile = null;
+  checkBtn.classList.add("disabled");
+  loadingText.style.display = "none";
+  hideAllPreviews();
+}
+
+    function showPreview(file) {
+  const previewContainer = document.getElementById("previewContainer");
+  const imagePreview = document.getElementById("imagePreview");
+  const videoPreview = document.getElementById("videoPreview");
+  const audioPreview = document.getElementById("audioPreview");
+
+  const fileURL = URL.createObjectURL(file);
+  previewContainer.style.display = "block";
+
+  if (fileType === "image") {
+    imagePreview.src = fileURL;
+    imagePreview.style.display = "block";
+  }
+
+  if (fileType === "video") {
+    videoPreview.src = fileURL;
+    videoPreview.style.display = "block";
+  }
+
+  if (fileType === "audio") {
+    audioPreview.src = fileURL;
+    audioPreview.style.display = "block";
+  }
+}
+
+function hideAllPreviews() {
+  document.getElementById("previewContainer").style.display = "none";
+  document.getElementById("imagePreview").style.display = "none";
+  document.getElementById("videoPreview").style.display = "none";
+  document.getElementById("audioPreview").style.display = "none";
+}
+
+  </script>
+  
+  
+
+</body>
+</html>
